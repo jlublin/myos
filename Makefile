@@ -5,7 +5,8 @@ SHELL := /bin/bash
 
 CROSS_COMPILE = arm-linux-gnueabi-
 AS = $(CROSS_COMPILE)as --cpreproc
-CC = $(CROSS_COMPILE)gcc -nostartfiles -nostdlib -ffreestanding -c
+#CC = $(CROSS_COMPILE)gcc -nostartfiles -nostdlib -ffreestanding -c -O2 -mcpu=xscale
+CC = $(CROSS_COMPILE)gcc -nostartfiles -nostdlib -ffreestanding -c -O1 -mcpu=xscale -Wall -Wextra
 LD = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
 

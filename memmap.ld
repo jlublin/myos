@@ -21,7 +21,7 @@ SECTIONS
 		*(.text);
 	}
 
-	. = ALIGN(4)
+	. = ALIGN(4);
 	bin_rodata = . - 0x80000000;
 
 	.rodata : AT (bin_rodata)
@@ -42,6 +42,9 @@ SECTIONS
 
 	.bss :
 	{
+		. = ALIGN(0x1000);
+		page_pool = .;
+		. += 0x8000; /* 32 k entries */
 		*(.bss);
 	}
 	end_of_bss = .;
@@ -59,8 +62,8 @@ SECTIONS
 	.und_stack	 = 	.und_barrier + 0x1000;
 	. = .und_stack + 0x1000;	
 	
-	.phys_mem_data = ALIGN(0x1000);
-	. = .phys_mem_data + 0x1000;
+	phys_mem_data = ALIGN(0x1000);
+	. = phys_mem_data + 0x1000;
 
 	.heap = ALIGN(0x1000);
 

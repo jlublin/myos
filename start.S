@@ -7,7 +7,7 @@ ivt_reset:		b start
 ivt_undef:		b .
 ivt_svc:		b .
 ivt_prefetch:	b .
-ivt_data:		b .
+ivt_data:		b abort
 ivt_unused:		b .
 ivt_irq:		b .
 ivt_fiq:		b .
@@ -92,7 +92,7 @@ clear_bss:
 	ldr r0, =csetupfinishedstr
 	bl uart_log
 
-	bl main
+	b main
 	
 
 uart_log:	@ (r0 is null-terminated string)
@@ -107,6 +107,10 @@ uart_log_loop:
 
 	b uart_log_loop
 
+abort:
+	mrc p15, 0, r0, c5, c0, 0
+	mrc p15, 0, r1, c1, c0, 0
+	b .
 
 .align
 .section .init_rodata
