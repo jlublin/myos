@@ -1,4 +1,6 @@
 
+#define UART0 0x40100000
+
 .section .init
 interrupt_vector_table:
 ivt_reset:		b start
@@ -11,8 +13,7 @@ ivt_irq:		b .
 ivt_fiq:		b .
 
 start:
-	ldr r3, =UART0_PADDR
-	ldr r2, [r3]
+	ldr r2, =UART0
 
 	mov r1, #'M'
 	str r1, [r2]
@@ -28,6 +29,4 @@ start:
 
 	b .
 
-UART0_PADDR:	.4byte 0x10009000
-UART0_PADDR1:	.4byte 0x10009000
 

@@ -3,7 +3,7 @@
 
 PLATFORM_PREFIX = arm-linux-gnueabi-
 AS = $(PLATFORM_PREFIX)as
-CC = $(PLATFORM_PREFIX)gcc
+CC = $(PLATFORM_PREFIX)gcc -nostdinc -nostdlib
 LD = $(PLATFORM_PREFIX)ld
 OBJCOPY = $(PLATFORM_PREFIX)objcopy
 
@@ -19,6 +19,9 @@ all: flash.bin
 clean:
 	rm *.o *.elf *.bin
 
+qemu: flash.bin
+	qemu-system-arm -M connex -pflash flash.bin -nographic
+
 flash.bin: start.bin
 	dd if=/dev/zero of=flash.bin bs=4096 count=4096
 	dd if=start.bin of=flash.bin bs=4096 conv=notrunc
@@ -29,6 +32,6 @@ start.bin: start.elf
 start.elf: start.o
 	$(LD) -T $(LD_SCRIPT) -o start.elf start.o
 
-start.o:
-	$(AS) -o start.o start.S
+start.o: start.S
+	$(CC) -o start.o start.S
 
