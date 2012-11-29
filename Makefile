@@ -1,11 +1,13 @@
 
 # Makefile for MyOS
 
-PLATFORM_PREFIX = arm-linux-gnueabi-
-AS = $(PLATFORM_PREFIX)as
-CC = $(PLATFORM_PREFIX)gcc -nostdinc -nostdlib
-LD = $(PLATFORM_PREFIX)ld
-OBJCOPY = $(PLATFORM_PREFIX)objcopy
+SHELL := /bin/bash
+
+CROSS_COMPILE = arm-linux-gnueabi-
+AS = $(CROSS_COMPILE)as --cpreproc
+CC = $(CROSS_COMPILE)gcc -nostartfiles -nostdlib -ffreestanding -c
+LD = $(CROSS_COMPILE)ld
+OBJCOPY = $(CROSS_COMPILE)objcopy
 
 .PHONY = all clean
 
@@ -22,6 +24,10 @@ clean:
 qemu: flash.bin
 	qemu-system-arm -M connex -pflash flash.bin -nographic
 
+qemu-gdb: flash.bin
+	qemu-system-arm -s -S -M connex -pflash flash.bin -nographic &
+	{ echo "target remote :1234"; cat; } | arm-linux-gdb
+
 flash.bin: start.bin
 	dd if=/dev/zero of=flash.bin bs=4096 count=4096
 	dd if=start.bin of=flash.bin bs=4096 conv=notrunc
@@ -29,9 +35,12 @@ flash.bin: start.bin
 start.bin: start.elf
 	$(OBJCOPY) -O binary start.elf start.bin
 
-start.elf: start.o
-	$(LD) -T $(LD_SCRIPT) -o start.elf start.o
+start.elf: start.o main.o memmap.ld
+	$(LD) -T $(LD_SCRIPT) -o start.elf start.o main.o
 
 start.o: start.S
 	$(CC) -o start.o start.S
+
+main.o: main.c
+	$(CC) -o main.o main.c
 

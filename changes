@@ -1,8 +1,0 @@
-trying with connexboard
-
-FFUART is connected to serial in qemu, use it
-
-FFUART - write/read address: 0x40100000
-BTUART - write/read address: 0x40200000
-STUART - write/read address: 0x40700000
-
