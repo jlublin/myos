@@ -1,0 +1,137 @@
+first run in qemu with ARM connex board
+
+Real Memory Map:
+
+0x0000_0000	Flash 16 MB
+0x0100_0000
+-
+0x4010_0000 FFUART Base Address
+-
+0xA000_0000	RAM 64 MB
+	Map (0x800x_xxxx -> 0xA00x_xxxx) Kernel code
+	Map (
+0xA400_0000
+-
+
+Peripherals used before memory managment and drivers are setup are mapped into userspace
+Flash must be accessible...
+
+Virtual memory map:
+	0x0000_0000 User space
+	0x0000_0000 No Access, catches NULL-pointer accesses
+	0x0000_1000
+
+	0x4010_0000	.init_uart_map	// Placed during start of kernel with identity mapping,
+								// used for accessing uart before drivers are loaded
+
+	0x8000_0000 Kernel space
+		0x8000_0000 vectors		(For simplicity maybe make this section 4 MB ?)
+					.init
+					.text
+					.rodata
+					.data
+		align(16K)
+					.mmu_map (1st table for TTBR1 and TTBR0)	// Last static entry
+					.bss
+						.page_pool (must be aligned 4K?)
+		align(4K)	// maybe add empty page between to detect stack overflow?
+					.fiq_stack	// Each 4K
+					.irq_stack	// svc_stack is kernel stack at end of address space
+					.abt_stack
+					.mon_stack
+					.und_stack
+		align(4K)
+					.phys_mem_data	// Dedicated to physical manager, eg. bitmap
+		align(4K)
+					.heap_and_svc_stack
+	
+		0xFFFF_EFFF End of Kernel stack
+		0xFFFF_F000 User executable (return to userspace code)
+	end
+
+Domains:
+	0 - (b01) Client
+	1 - (b11) Manager
+	* - (b00) No access, generates a domain fault.
+
+	c3c0 = b1101 = 0x13
+	MCR p15, 0, <Rd>, c3, c0, 0 ; Write Domain Access Control Register
+
+TTBRx:
+	Physical address
+	MCR p15, 0, <Rd>, c2, c0, 0
+
+init:
+	(init early debug/UART)
+	kernel should be put in ram, and if compressed unpacked (page table level 1 comes in this)
+	setup memory domains
+	init paging
+	map kernel space and identity mapping, static mapping of level 1 for kernel
+	start MMU
+	init 1 page for stack (this is at end of address space so not part of static)
+	set up C, stack and bss
+	jump to main kernel
+
+main_init:
+	setup vectors and vector base address register
+	init mem managment (what happens if stack runs out of space? abort stack is used)
+	setup stacks
+
+C Setup:
+
+    Stack (Full descending, points to last used memory location)
+
+    Global variables
+        Initialized
+        Uninitialized 
+    Read-only data 
+
+
+physical memory manager:
+
+bitmap usage of RAM in 4K pages (no reason to use other sizes)
+
+typedef (void*) phys_addr_t
+
+struct phys_ram
+{
+	void	*base_address;
+	uint32	ram_size;
+	
+	uint32 *usage_bitmap;	// Or shold this be static 128 kB ?
+}
+
+phys_addr_t	alloc_physical_memory() // Finds free page, allocs it and returns phys address
+void		dealloc_physical_memory(phys_addr_t address)
+
+virtual memory manager:
+
+Phys page is 4 kB and level 2 page table is 1 kB (lvl 1 is max 16 kB (8 kB)). So alloc one physical page to 4 level 2 page tables and use one and store the remaining three for later allocations. Problem is, what happens when virtual memory is deallocated? Store up to some number in a temporary array?
+Algorithm: Store dealloced level 2 page table address in 3 temporary spaces. If full, move the three remaining to the stored free page tables and clear all four tables.
+Map level 2 page tables at end of userspace? Maybe level 1 page table there as well? Or beginning of userspace? Level 1 page table is 8 kB = 2 pages, level 2 page tables is 2048 * 1 kB = 2048 kB = 512 pages. In this case reserve first 4 MB to kernel? Other memory space specific stuff could be put there also.
+
+/*
+Allocs a physical page and maps virtual page to it.
+	Args: Virtual address of page to map, flags with attributes etc..(what flags?)
+	returns: 0 on sucess, -<ERROR> otherwise
+*/
+int alloc_virtual_memory(void* virtual_page_address, uint32_t flags);
+void dealloc_virtual_memory(void* virtual_page_address);
+int iomap_virtual_memory(void* virtual_page_address, phys_addr_t physical_page_address);
+
+
+
+Possible lib functions:
+	UART_Log
+	Invalidate TLB
+	Invalidate Page (just on page in TLB)
+	Flush IDC (Instruction/Data Cache)
+	Set Translatiot Table Base (for context switch)
+
+processes:
+	first version can us a static array with processes
+	final design should be linked list?
+
+Useful trick?: page directories last entry could point to the page directory..
+
+

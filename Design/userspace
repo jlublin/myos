@@ -1,0 +1,45 @@
+
+
+Virtual memory map:
+	0x0000_0000 Kernel stuff
+	0x0000_0000 No Access, catches NULL-pointer accesses
+	0x0000_1000 Level 1 page table
+	0x0000_3000
+
+	0x0020_0000 Level 2 page tables for this user space
+	0x0040_0000 User space
+
+
+	0x8000_0000 Stack end / Start of Kernel Space
+
+
+
+
+
+Level 1 Page Tables 8 kB (pointer to 1 kB)
+PTE(1) = page& PTE(1,1)
+PTE(2) = phys& PTE(2,1)
+PTE(3)
+PTE(4)
+PTE(5)
+...
+PTE(2048)
+
+
+page& PTE(1,1): 4 Level 2 page table @ 1 kB (pointer to 4 kB) 
+PTE(1,1) = No Access
+PTE(1,2) = page& PTE(1)-PTE(1024)
+PTE(1,3) = page& PTE(1025)-PTE(2048)
+PTE(1,4)
+...
+PTE(2,1)
+PTE(2,2)
+...
+PTE(3,1) = page& PTE(1,1)-PTE(4,256)
+PTE(3,2)
+...
+PTE(4,256)
+
+
+
+
