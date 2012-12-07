@@ -34,7 +34,7 @@ Virtual memory map:
 					.mmu_kernel_map (1st table for TTBR1 and TTBR0)		// Last static entry		
 		align(4K)
 					.mmu_kernel_map_lvl2 (2 MiB for 512k entries)
-					.tmp_mmu_lvl2_entry * 4 (Adds up to one page)
+					.tmp_page (4K, can be mapped to access any real memory)
 					.bss
 		align(4K)	// maybe add empty page between to detect stack overflow?
 					.fiq_stack	// Each 4K
