@@ -31,9 +31,11 @@ Virtual memory map:
 					.rodata
 					.data
 		align(16K)
-					.mmu_map (1st table for TTBR1 and TTBR0)	// Last static entry
+					.mmu_kernel_map (1st table for TTBR1 and TTBR0)		// Last static entry		
+		align(4K)
+					.mmu_kernel_map_lvl2 (2 MiB for 512k entries)
+					.tmp_mmu_lvl2_entry * 4 (Adds up to one page)
 					.bss
-						.page_pool (must be aligned 4K?)
 		align(4K)	// maybe add empty page between to detect stack overflow?
 					.fiq_stack	// Each 4K
 					.irq_stack	// svc_stack is kernel stack at end of address space

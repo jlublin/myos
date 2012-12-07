@@ -35,10 +35,17 @@ SECTIONS
 
 	.data : AT (bin_data)
 	{
-		*(.mmu_kernel_map);
 		*(.data);
+		*(.mmu_kernel_map);
 	}
 	end_of_static_kernel = . - 0x80000000;
+
+	. = ALIGN(0x1000)
+	.mmu_kernel_map_lvl2 = .
+	. += 0x200000
+
+	.tmp_mmu_lvl2_entry = .
+	. += 0x1000		/* 1 page */
 
 	.bss :
 	{
