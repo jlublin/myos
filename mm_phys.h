@@ -1,7 +1,10 @@
+#ifndef __MM_PHYS_H
+#define __MM_PHYS_H
 
 #define RAM_SIZE 64*1024*1024
 #define RAM_BASE 0xA0000000
-#define PAGE_SIZE 4096;
+#define PAGE_SIZE 4096
+#define KERNEL_PHYS_BASE_ADDRESS 0xA0000000
 
 typedef unsigned int uint32_t;
 typedef void* phys_addr_t;
@@ -19,4 +22,5 @@ phys_addr_t	alloc_physical_page();
 phys_addr_t	alloc_physical_sequential_pages(uint32_t num_pages);
 void 		dealloc_physical_page(phys_addr_t page_address);
 
+#endif /* __MMPHYS_H */
 

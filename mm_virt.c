@@ -1,4 +1,6 @@
+
 #include "mm_virt.h"
+#include "mm_phys.h"
 
 /*
 
@@ -48,43 +50,82 @@ Use a pool of 32(64?)k pages. Bitmap them.
 /*
 	Flags could give info about: domain, kernel/user space (TTBR0/TTBR1), executable
 */
-int alloc_virtual_page(mem_struct_t *mem, uint32_t virtual_page_address, uint32_t flags)
+int alloc_virtual_page(memory_space_t *mem_space, uint32_t virtual_page_address, uint32_t flags)
 {	// TODO
-	uint32_t vpage_address = virtual_page_address & 0xFFFFF000;
+//	uint32_t vpage_address = virtual_page_address & 0xFFFFF000;
 
 	// Check that virtual memory isn't already used and create level 2 table if
 	// it doesn't exist for the page
-	uint32_t virt_page1 = mem->page_table[(virtual_page_address & 0xFFF00000) >> 20]
-	if
+//	uint32_t virt_page1 = mem->page_table[(virtual_page_address & 0xFFF00000) >> 20]
+//	if
 
 	// Alloc physcal page
-	phys_addr_t phys_page = alloc_physical_page();
+//	phys_addr_t phys_page = alloc_physical_page();
 
 	// Map virtual page to physical page
+
+	return -1;
 }
 
-void dealloc_virtual_page(mem_struct_t *mem, void* virtual_page_address)
+void dealloc_virtual_page(memory_space_t *mem_space, uint32_t virtual_page_address)
 {	// TODO
 	// 
 }
 
-int iomap_virtual_page(mem_struct_t *mem, void* virtual_page_address, phys_addr_t physical_page_address)
+int iomap_virtual_page(memory_space_t *mem_space, uint32_t virtual_page_address, phys_addr_t physical_page_address)
 {	// TODO
 	return -1;
 }
 
+int init_kernel_memory_space(memory_space_t *mem_space)
+{
+	extern uint32_t mmu_kernel_map;
+	extern uint32_t mmu_kernel_map_lvl2;
+	uint16_t i, j;
+
+	mem_space->ttb_register = KERNEL_SPACE;
+
+	mem_space->page_table_2[0] = 0;
+	mem_space->page_table_2[1] = 0;
+	mem_space->page_table_2[2] = 0;
+
+	// Assume kernel space use 8 kB level 1 page table
+
+	mem_space->page_table_1 = &mmu_kernel_map;
+
+	// Setup level 2 page table, then point level 1 table to it
+	// Simplest way to begin with this is to map all 4 MiB currently
+	// allocated to the kernel from the start
+
+	uint32_t page_i = 0; // First page is where kernel space begins
+
+	for(i = 0; i < 4; i++)
+	{
+		// Setup lvl2 page tables for 1 MiB
+		for(j = 0; j < 256; j++)
+		{
+			(&mmu_kernel_map_lvl2)[page_i] = 
+				(KERNEL_PHYS_BASE_ADDRESS + (i * 256 + j) * PAGE_SIZE)
+				& PAGE_KERNEL_RW & 0x2;
+		}
+
+		(&mmu_kernel_map)[i] = ((uint32_t)&mmu_kernel_map_lvl2 + 0x20000000 /* tror jag, virt->phys*/ + i * 1024) & DOMAIN_CLIENT << 5 & 0x1;
+	}
+
+	return 0;
+}
 
 int init_user_memory_space(memory_space_t *mem_space)
 {	// TODO
 	// 4 Page table that maps first 4 MiB which includes the page tables
-	phys_addr_t first_level2_page_tables;
+/*	phys_addr_t first_level2_page_tables;
 
 	mem_space->ttb_register = USER_SPACE;
 	mem_space->page_table_2[0] = 0;
 	mem_space->page_table_2[1] = 0;
 	mem_space->page_table_2[2] = 0;
 
-	// Assume user space use 8 kB level 1 page tables
+	// Assume user space use 8 kB level 1 page table
 
 	if((mem_space->page_table_1 = alloc_physical_sequential_pages(2)) == NULL)
 		return -1; // Error: out of memory
@@ -110,13 +151,15 @@ int init_user_memory_space(memory_space_t *mem_space)
 	// Set up first 4 MiB in level 2 page tables
 
 	return 0;
+*/
+	return -1;
 }
 
 void remove_memory_space(memory_space_t *mem_space)
 {	// TODO
 	// Iterate through whole page table to dealloc all physical pages used
 	// This might need a lock on physical memory manager
-
+/*
 	uint32_t i, j;
 
 	// Skip first 4 because they are special
@@ -136,6 +179,7 @@ void remove_memory_space(memory_space_t *mem_space)
 	}
 
 	// Dealloc level 1 page table
+*/
 }
 
 void switch_user_space(memory_space_t *new_mem_space)

@@ -30,22 +30,19 @@ SECTIONS
 	}
 
 	. = ALIGN(0x4000);
-
 	bin_data = . - 0x80000000;
 
 	.data : AT (bin_data)
 	{
-		*(.data);
+		mmu_kernel_map = .;
 		*(.mmu_kernel_map);
+		*(.data);
 	}
 	end_of_static_kernel = . - 0x80000000;
 
-	. = ALIGN(0x1000)
-	.mmu_kernel_map_lvl2 = .
-	. += 0x200000
-
-	.tmp_mmu_lvl2_entry = .
-	. += 0x1000		/* 1 page */
+	. = ALIGN(0x1000);
+	mmu_kernel_map_lvl2 = .;
+	. += 0x200000;
 
 	.bss :
 	{
@@ -75,6 +72,10 @@ SECTIONS
 	.heap = ALIGN(0x1000);
 
 	/* stack barrier ? */
+
+	. = 0x80400000;	/* end of big section mapping */
+	tmp_mmu_lvl2_entry = .;
+	. += 0x1000;		/* 1 page */
 
 	. = 0xFFFFF000;
 	stack_top = .;

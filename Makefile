@@ -36,12 +36,15 @@ flash.bin: start.bin
 start.bin: start.elf
 	$(OBJCOPY) -O binary start.elf start.bin
 
-start.elf: start.o main.o memmap.ld
-	$(LD) -T $(LD_SCRIPT) -o start.elf start.o main.o
+start.elf: start.o main.o mm_virt.o memmap.ld
+	$(LD) -T $(LD_SCRIPT) -o start.elf start.o main.o mm_virt.o
 
 start.o: start.S
 	$(CC) -o start.o start.S
 
 main.o: main.c
 	$(CC) -o main.o main.c
+
+mm_virt.o: mm_virt.c
+	$(CC) -o mm_virt.o mm_virt.c
 

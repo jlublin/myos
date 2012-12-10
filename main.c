@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include "mm_virt.h"
 
 #define FFUART (void*)0x40100000
 
@@ -8,6 +10,12 @@ void main()
 	volatile unsigned int *uart = FFUART;
 
 	debug_uart("C kernel is running\n");
+
+	memory_space_t kernel_space;
+
+	init_kernel_memory_space(&kernel_space);
+
+	debug_uart("Kernel is still running, nothing bad happened?\n");
 
 	while(1) {}
 }
