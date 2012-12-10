@@ -7,8 +7,6 @@ void debug_uart(char *string);
 
 void main()
 {
-	volatile unsigned int *uart = FFUART;
-
 	debug_uart("C kernel is running\n");
 
 	memory_space_t kernel_space;
